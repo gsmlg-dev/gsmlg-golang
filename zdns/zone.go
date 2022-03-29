@@ -42,10 +42,8 @@ func GetZone() []Zone {
 	data, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
 	exitIfError(err)
-	// fmt.Println(string(data))
 	var zones []Zone
 	err = json.Unmarshal(data, &zones)
 	exitIfError(err)
-	// fmt.Printf("%v", zones)
 	return zones
 }
