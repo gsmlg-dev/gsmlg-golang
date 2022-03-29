@@ -3,6 +3,7 @@ package print
 import (
 	"fmt"
 	"reflect"
+	"time"
 )
 
 func Table(rl interface{}, titles []string) {
@@ -53,6 +54,11 @@ func Table(rl interface{}, titles []string) {
 				str = fmt.Sprint(val.Int())
 			case reflect.Uint, reflect.Uintptr, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 				str = fmt.Sprint(val.Uint())
+			case reflect.TypeOf(time.Time{}).Kind():
+				format := reflect.ValueOf(time.RFC3339)
+				args := []reflect.Value{format}
+				v := val.MethodByName("Format").Call(args)
+				str = v[0].String()
 			default:
 				str = val.String()
 			}
