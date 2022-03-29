@@ -3,6 +3,7 @@ package zdns
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 )
@@ -79,9 +80,15 @@ func GetRrByZone(zone string) []Rr {
 func CreateRrInZone(zone string, name string, typ string, ttl int, rdata string) []Rr {
 	u, d := api.RRManagerRequest()
 	d.ResourceType = "rr"
+	var fullName string = ""
+	if name == "@" {
+		fullName = zone
+	} else {
+		fullName = fmt.Sprintf("%s.%s", name, zone)
+	}
 	rr := Rr{
 		Zone:  zone,
-		Name:  name,
+		Name:  fullName,
 		Type:  typ,
 		Ttl:   ttl,
 		Rdata: rdata,
@@ -101,6 +108,9 @@ func CreateRrInZone(zone string, name string, typ string, ttl int, rdata string)
 	exitIfError(err)
 	var rrs []Rr
 	err = json.Unmarshal(data, &rrs)
+	if err != nil {
+		fmt.Printf("%s\n", data)
+	}
 	exitIfError(err)
 	return rrs
 }
