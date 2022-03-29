@@ -135,6 +135,9 @@ func DeleteRr(ids ...string) []Rr {
 	exitIfError(err)
 	var rrs []Rr
 	err = json.Unmarshal(data, &rrs)
+	if err != nil {
+		fmt.Printf("%s\n", data)
+	}
 	exitIfError(err)
 	return rrs
 }
