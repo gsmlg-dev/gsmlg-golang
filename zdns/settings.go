@@ -2,8 +2,9 @@ package zdns
 
 import (
 	"fmt"
-	"github.com/gsmlg-dev/gsmlg-golang/errorhandler"
 	"net/url"
+
+	"github.com/gsmlg-dev/gsmlg-golang/errorhandler"
 )
 
 var exitIfError = errorhandler.CreateExitIfError("ZDNS")
@@ -14,6 +15,12 @@ var api *ApiService = NewApi()
 type ApiService struct {
 	baseUrl string
 	token   string
+}
+
+type DataStruct struct {
+	ResourceType string      `json:"resource_type"`
+	Zdnsuser     string      `json:"zdnsuser"`
+	Attrs        interface{} `json:"attrs"`
 }
 
 func NewApi() *ApiService {
@@ -48,4 +55,14 @@ func (api *ApiService) GetRRManagerUrl() *url.URL {
 	q.Set("zdnsuser", api.token)
 	u.RawQuery = q.Encode()
 	return u
+}
+
+func (api *ApiService) RRManagerRequest() (*url.URL, DataStruct) {
+	u, err := url.Parse(api.baseUrl)
+	exitIfError(err)
+	u.Path = "/rrmanager"
+	d := DataStruct{
+		Zdnsuser: api.token,
+	}
+	return u, d
 }

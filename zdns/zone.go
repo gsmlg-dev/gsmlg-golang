@@ -1,6 +1,7 @@
 package zdns
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -40,6 +41,56 @@ func GetZone() []Zone {
 	resp, err := http.Get(s)
 	exitIfError(err)
 	data, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	exitIfError(err)
+	var zones []Zone
+	err = json.Unmarshal(data, &zones)
+	exitIfError(err)
+	return zones
+}
+
+func CreateZone(name string) Zone {
+	u, d := api.RRManagerRequest()
+	gid, _ := GetZoneGroupUngroupId()
+	d.ResourceType = "zone"
+	z := Zone{
+		Name:      name,
+		ZoneGroup: gid,
+	}
+	d.Attrs = []Zone{z}
+	data, err := json.Marshal(d)
+	exitIfError(err)
+	req, err := http.NewRequest(http.MethodPost, u.String(), bytes.NewReader(data))
+	exitIfError(err)
+	c := http.Client{}
+	resp, err := c.Do(req)
+	exitIfError(err)
+	data, err = io.ReadAll(resp.Body)
+	resp.Body.Close()
+	exitIfError(err)
+	var zones []Zone
+	err = json.Unmarshal(data, &zones)
+	exitIfError(err)
+	zone := zones[0]
+	return zone
+}
+
+func DeleteZone(ids ...string) []Zone {
+	u, d := api.RRManagerRequest()
+	d.ResourceType = "zone"
+	attrs := make([]map[string]string, len(ids))
+	for k, v := range ids {
+		attrs[k] = map[string]string{"id": v}
+	}
+	d.Attrs = attrs
+	data, err := json.Marshal(d)
+	exitIfError(err)
+	req, err := http.NewRequest(http.MethodDelete, u.String(), bytes.NewReader(data))
+	exitIfError(err)
+	c := http.Client{}
+	resp, err := c.Do(req)
+	exitIfError(err)
+	data, err = io.ReadAll(resp.Body)
 	resp.Body.Close()
 	exitIfError(err)
 	var zones []Zone
