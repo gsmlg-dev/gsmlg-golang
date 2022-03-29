@@ -49,7 +49,7 @@ func GetZone() []Zone {
 	return zones
 }
 
-func CreateZone(name string) Zone {
+func CreateZone(name string) []Zone {
 	u, d := api.RRManagerRequest()
 	gid, _ := GetZoneGroupUngroupId()
 	d.ResourceType = "zone"
@@ -71,8 +71,7 @@ func CreateZone(name string) Zone {
 	var zones []Zone
 	err = json.Unmarshal(data, &zones)
 	exitIfError(err)
-	zone := zones[0]
-	return zone
+	return zones
 }
 
 func DeleteZone(ids ...string) []Zone {
