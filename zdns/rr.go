@@ -76,7 +76,7 @@ func GetRrByZone(zone string) []Rr {
 	return rrs
 }
 
-func CreateRrInZone(zone string, name, string, typ string, ttl int, rdata string) []Rr {
+func CreateRrInZone(zone string, name string, typ string, ttl int, rdata string) []Rr {
 	u, d := api.RRManagerRequest()
 	d.ResourceType = "rr"
 	rr := Rr{
