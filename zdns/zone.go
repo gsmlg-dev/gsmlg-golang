@@ -2,7 +2,6 @@ package zdns
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -32,7 +31,7 @@ type Zone struct {
 	ChineseConvert bool      `json:"chinese_convert"`
 }
 
-func GetZone() {
+func GetZone() []Zone {
 	u := api.GetRRManagerUrl()
 	q := u.Query()
 	q.Set("resource_type", "zone")
@@ -43,9 +42,10 @@ func GetZone() {
 	data, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
 	exitIfError(err)
-	fmt.Println(string(data))
+	// fmt.Println(string(data))
 	var zones []Zone
 	err = json.Unmarshal(data, &zones)
 	exitIfError(err)
-	fmt.Printf("%v", zones)
+	// fmt.Printf("%v", zones)
+	return zones
 }
