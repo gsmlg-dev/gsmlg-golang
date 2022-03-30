@@ -20,7 +20,7 @@ import (
   }
 }
 */
-func NewLoginForm(username string, password string) interface{} {
+func NewLoginForm(username string, password string, hours int) interface{} {
 	form := struct {
 		Type  string `json:"resource_type"`
 		Attrs struct {
@@ -34,7 +34,7 @@ func NewLoginForm(username string, password string) interface{} {
 		Type: "gen_api_token",
 	}
 	form.Attrs.Encrypt = 0
-	form.Attrs.ExpireIn = 750
+	form.Attrs.ExpireIn = hours
 	form.Attrs.GrantType = "grant_type"
 	form.Attrs.Username = username
 	form.Attrs.Password = password
