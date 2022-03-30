@@ -59,7 +59,8 @@ const (
 
 var RrTypes = []string{"soa", "ns", "a", "aw", "aaaa", "aaaaw", "mx", "cname", "cnamew", "dname", "txt", "spf", "ptr", "srv", "xw", "lname", "caa", "trans", "aa", "aapf", "transaa"}
 
-func GetRrByZone(zone string) []Rr {
+func GetRrByZone(zone string) ([]Rr, error) {
+	var rrs []Rr
 	u := api.GetRRManagerUrl()
 	q := u.Query()
 	q.Set("resource_type", "rr")
@@ -67,17 +68,22 @@ func GetRrByZone(zone string) []Rr {
 	u.RawQuery = q.Encode()
 	s := u.String()
 	resp, err := http.Get(s)
-	exitIfError(err)
+	if err != nil {
+		return rrs, error
+	}
 	data, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
-	exitIfError(err)
-	var rrs []Rr
+	if err != nil {
+		return rrs, error
+	}
 	err = json.Unmarshal(data, &rrs)
-	exitIfError(err)
-	return rrs
+	if err != nil {
+		return rrs, error
+	}
+	return rrs, nil
 }
 
-func CreateRrInZone(zone string, name string, typ string, ttl int, rdata string) []Rr {
+func CreateRrInZone(zone string, name string, typ string, ttl int, rdata string) ([]Rr, error) {
 	u, d := api.RRManagerRequest()
 	d.ResourceType = "rr"
 	var fullName string = ""
@@ -86,6 +92,7 @@ func CreateRrInZone(zone string, name string, typ string, ttl int, rdata string)
 	} else {
 		fullName = fmt.Sprintf("%s.%s", name, zone)
 	}
+	var rrs []Rr
 	rr := Rr{
 		Zone:  zone,
 		Name:  fullName,
@@ -97,47 +104,109 @@ func CreateRrInZone(zone string, name string, typ string, ttl int, rdata string)
 	}
 	d.Attrs = []Rr{rr}
 	data, err := json.Marshal(d)
-	exitIfError(err)
+	if err != nil {
+		return rrs, err
+	}
 	req, err := http.NewRequest(http.MethodPost, u.String(), bytes.NewReader(data))
-	exitIfError(err)
+	if err != nil {
+		return rrs, err
+	}
 	c := http.Client{}
 	resp, err := c.Do(req)
-	exitIfError(err)
+	if err != nil {
+		return rrs, err
+	}
 	data, err = io.ReadAll(resp.Body)
 	resp.Body.Close()
-	exitIfError(err)
-	var rrs []Rr
+	if err != nil {
+		return rrs, err
+	}
 	err = json.Unmarshal(data, &rrs)
 	if err != nil {
-		fmt.Printf("%s\n", data)
+		return rrs, err
 	}
-	exitIfError(err)
-	return rrs
+	return rrs, nil
 }
 
-func DeleteRr(ids ...string) []Rr {
+func DeleteRr(ids ...string) ([]Rr, error) {
 	u, d := api.RRManagerRequest()
 	d.ResourceType = "rr"
 	attrs := make([]map[string]string, len(ids))
 	for k, v := range ids {
 		attrs[k] = map[string]string{"id": v}
 	}
+	var rrs []Rr
 	d.Attrs = attrs
 	data, err := json.Marshal(d)
-	exitIfError(err)
+	if err != nil {
+		return rrs, err
+	}
 	req, err := http.NewRequest(http.MethodDelete, u.String(), bytes.NewReader(data))
-	exitIfError(err)
+	if err != nil {
+		return rrs, err
+	}
 	c := http.Client{}
 	resp, err := c.Do(req)
-	exitIfError(err)
+	if err != nil {
+		return rrs, err
+	}
 	data, err = io.ReadAll(resp.Body)
 	resp.Body.Close()
-	exitIfError(err)
-	var rrs []Rr
+	if err != nil {
+		return rrs, err
+	}
 	err = json.Unmarshal(data, &rrs)
 	if err != nil {
 		fmt.Printf("%s\n", data)
 	}
-	exitIfError(err)
-	return rrs
+	if err != nil {
+		return rrs, err
+	}
+	return rrs, nil
+}
+
+func UpdateRr(zone string, id string, name string, typ string, ttl int, rdata string) ([]Rr, error) {
+	u, d := api.RRManagerRequest()
+	d.ResourceType = "rr"
+	var fullName string = ""
+	if name == "@" {
+		fullName = zone
+	} else {
+		fullName = fmt.Sprintf("%s.%s", name, zone)
+	}
+	var rrs []Rr
+	rr := Rr{
+		Id:    id,
+		Zone:  zone,
+		Name:  fullName,
+		Type:  typ,
+		Ttl:   ttl,
+		Rdata: rdata,
+		Flags: 1,
+		View:  "others",
+	}
+	d.Attrs = []Rr{rr}
+	data, err := json.Marshal(d)
+	if err != nil {
+		return rrs, err
+	}
+	req, err := http.NewRequest(http.MethodPut, u.String(), bytes.NewReader(data))
+	if err != nil {
+		return rrs, err
+	}
+	c := http.Client{}
+	resp, err := c.Do(req)
+	if err != nil {
+		return rrs, err
+	}
+	data, err = io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return rrs, err
+	}
+	err = json.Unmarshal(data, &rrs)
+	if err != nil {
+		return rrs, err
+	}
+	return rrs, nil
 }
