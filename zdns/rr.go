@@ -69,16 +69,16 @@ func GetRrByZone(zone string) ([]Rr, error) {
 	s := u.String()
 	resp, err := http.Get(s)
 	if err != nil {
-		return rrs, error
+		return rrs, err
 	}
 	data, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
 	if err != nil {
-		return rrs, error
+		return rrs, err
 	}
 	err = json.Unmarshal(data, &rrs)
 	if err != nil {
-		return rrs, error
+		return rrs, err
 	}
 	return rrs, nil
 }
