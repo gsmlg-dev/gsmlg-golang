@@ -49,9 +49,9 @@ type ZdnsUser struct {
 	ExpireAt time.Time `json:"expire_at"`
 }
 
-func Login(user string, pass string) ZdnsUser {
+func Login(user string, pass string, hours int) ZdnsUser {
 	var err error
-	data := NewLoginForm(user, pass)
+	data := NewLoginForm(user, pass, hours)
 	b, err := json.Marshal(data)
 	exitIfError(err)
 	r, _ := http.Post(api.GetAuthUrl(), "application/json", bytes.NewReader(b))
