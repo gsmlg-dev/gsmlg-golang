@@ -93,6 +93,9 @@ func CreateRrInZone(zone string, name string, typ string, ttl int, rdata string)
 		fullName = fmt.Sprintf("%s.%s", name, zone)
 	}
 	var rrs []Rr
+	if ttl < 60 {
+		ttl = 60
+	}
 	rr := Rr{
 		Zone:  zone,
 		Name:  fullName,
@@ -173,6 +176,9 @@ func UpdateRr(zone string, id string, name string, typ string, ttl int, rdata st
 		fullName = zone
 	} else {
 		fullName = fmt.Sprintf("%s.%s", name, zone)
+	}
+	if ttl < 60 {
+		ttl = 60
 	}
 	var rrs []Rr
 	rr := Rr{
