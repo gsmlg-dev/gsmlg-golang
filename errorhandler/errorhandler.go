@@ -28,7 +28,7 @@ func errorHandler(logger *log.Logger) func(interface{}, ...int) {
 	}
 }
 
-func CreateExitIfError(msg string) func(error, ...int) {
+func CreateExitIfError(msg string) func(interface{}, ...int) {
 	info := fmt.Sprintf("[%s]: ", msg)
 	logger := log.New(os.Stderr, info, 0)
 	exitIfError := errorHandler(logger)
