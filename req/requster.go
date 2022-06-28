@@ -108,25 +108,25 @@ type Requester struct {
 }
 
 type ClientOpt struct {
-	url       string
-	method    string
-	headers   []string
-	bodyBytes []byte
-	bodyFile  string
+	Url       string
+	Method    string
+	Headers   []string
+	BodyBytes []byte
+	BodyFile  string
 
-	certPath string
-	keyPath  string
-	insecure bool
+	CertPath string
+	KeyPath  string
+	Insecure bool
 
-	maxConns     int
-	doTimeout    time.Duration
-	readTimeout  time.Duration
-	writeTimeout time.Duration
-	dialTimeout  time.Duration
+	MaxConns     int
+	DoTimeout    time.Duration
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+	DialTimeout  time.Duration
 
-	socks5Proxy string
-	contentType string
-	host        string
+	Socks5Proxy string
+	ContentType string
+	Host        string
 }
 
 func NewRequester(concurrency int, requests int64, duration time.Duration, clientOpt *ClientOpt) (*Requester, error) {
@@ -164,21 +164,21 @@ func addMissingPort(addr string, isTLS bool) string {
 
 func buildTLSConfig(opt *ClientOpt) (*tls.Config, error) {
 	var certs []tls.Certificate
-	if opt.certPath != "" && opt.keyPath != "" {
-		c, err := tls.LoadX509KeyPair(opt.certPath, opt.keyPath)
+	if opt.CertPath != "" && opt.KeyPath != "" {
+		c, err := tls.LoadX509KeyPair(opt.CertPath, opt.KeyPath)
 		if err != nil {
 			return nil, err
 		}
 		certs = append(certs, c)
 	}
 	return &tls.Config{
-		InsecureSkipVerify: opt.insecure,
+		InsecureSkipVerify: opt.Insecure,
 		Certificates:       certs,
 	}, nil
 }
 
 func buildRequestClient(opt *ClientOpt, r *int64, w *int64) (*fasthttp.HostClient, *fasthttp.RequestHeader, error) {
-	u, err := url2.Parse(opt.url)
+	u, err := url2.Parse(opt.Url)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -186,18 +186,18 @@ func buildRequestClient(opt *ClientOpt, r *int64, w *int64) (*fasthttp.HostClien
 		Addr:                          addMissingPort(u.Host, u.Scheme == "https"),
 		IsTLS:                         u.Scheme == "https",
 		Name:                          "plow",
-		MaxConns:                      opt.maxConns,
-		ReadTimeout:                   opt.readTimeout,
-		WriteTimeout:                  opt.writeTimeout,
+		MaxConns:                      opt.MaxConns,
+		ReadTimeout:                   opt.ReadTimeout,
+		WriteTimeout:                  opt.WriteTimeout,
 		DisableHeaderNamesNormalizing: true,
 	}
-	if opt.socks5Proxy != "" {
-		if !strings.Contains(opt.socks5Proxy, "://") {
-			opt.socks5Proxy = "socks5://" + opt.socks5Proxy
+	if opt.Socks5Proxy != "" {
+		if !strings.Contains(opt.Socks5Proxy, "://") {
+			opt.Socks5Proxy = "socks5://" + opt.Socks5Proxy
 		}
-		httpClient.Dial = fasthttpproxy.FasthttpSocksDialer(opt.socks5Proxy)
+		httpClient.Dial = fasthttpproxy.FasthttpSocksDialer(opt.Socks5Proxy)
 	} else {
-		httpClient.Dial = fasthttpproxy.FasthttpProxyHTTPDialerTimeout(opt.dialTimeout)
+		httpClient.Dial = fasthttpproxy.FasthttpProxyHTTPDialerTimeout(opt.DialTimeout)
 	}
 	httpClient.Dial = ThroughputInterceptorDial(httpClient.Dial, r, w)
 
@@ -208,17 +208,17 @@ func buildRequestClient(opt *ClientOpt, r *int64, w *int64) (*fasthttp.HostClien
 	httpClient.TLSConfig = tlsConfig
 
 	var requestHeader fasthttp.RequestHeader
-	if opt.contentType != "" {
-		requestHeader.SetContentType(opt.contentType)
+	if opt.ContentType != "" {
+		requestHeader.SetContentType(opt.ContentType)
 	}
-	if opt.host != "" {
-		requestHeader.SetHost(opt.host)
+	if opt.Host != "" {
+		requestHeader.SetHost(opt.Host)
 	} else {
 		requestHeader.SetHost(u.Host)
 	}
-	requestHeader.SetMethod(opt.method)
+	requestHeader.SetMethod(opt.Method)
 	requestHeader.SetRequestURI(u.RequestURI())
-	for _, h := range opt.headers {
+	for _, h := range opt.Headers {
 		n := strings.SplitN(h, ":", 2)
 		if len(n) != 2 {
 			return nil, nil, fmt.Errorf("invalid header: %s", h)
@@ -246,8 +246,8 @@ func (r *Requester) closeRecord() {
 func (r *Requester) DoRequest(req *fasthttp.Request, resp *fasthttp.Response, rr *ReportRecord) {
 	t1 := time.Since(startTime)
 	var err error
-	if r.clientOpt.doTimeout > 0 {
-		err = r.httpClient.DoTimeout(req, resp, r.clientOpt.doTimeout)
+	if r.clientOpt.DoTimeout > 0 {
+		err = r.httpClient.DoTimeout(req, resp, r.clientOpt.DoTimeout)
 	} else {
 		err = r.httpClient.Do(req, resp)
 	}
@@ -336,8 +336,8 @@ func (r *Requester) Run() {
 					return
 				}
 
-				if r.clientOpt.bodyFile != "" {
-					file, err := os.Open(r.clientOpt.bodyFile)
+				if r.clientOpt.BodyFile != "" {
+					file, err := os.Open(r.clientOpt.BodyFile)
 					if err != nil {
 						rr := recordPool.Get().(*ReportRecord)
 						rr.cost = 0
@@ -349,7 +349,7 @@ func (r *Requester) Run() {
 					}
 					req.SetBodyStream(file, -1)
 				} else {
-					req.SetBodyRaw(r.clientOpt.bodyBytes)
+					req.SetBodyRaw(r.clientOpt.BodyBytes)
 				}
 				resp.Reset()
 				rr := recordPool.Get().(*ReportRecord)
