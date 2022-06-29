@@ -15,7 +15,14 @@ func SetExitHandler(f func()) {
 func errorHandler(logger *log.Logger) func(interface{}, ...int) {
 	return func(err interface{}, exitCode ...int) {
 		if err != nil {
-			logger.Println(err)
+			if _, ok := err.(string); ok {
+				logger.Println(err)
+			} else if _, ok := err.(error); ok {
+				logger.Println(err.Error())
+			} else {
+				logger.Printf("%s <%v>\n", err, err)
+			}
+
 			if exitHandler != nil {
 				exitHandler()
 			}
