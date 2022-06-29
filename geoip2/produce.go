@@ -38,8 +38,14 @@ func ProduceCity(c *City, lang string) map[string]interface{} {
 	out["representedCountry_iso"] = c.RepresentedCountry.IsoCode
 	out["representedCountry_type"] = c.RepresentedCountry.Type
 
-	out["subdivisions"] = getNameByLang(c.Subdivisions.Names, lang)
-	out["subdivisions_iso"] = c.Subdivisions.IsoCode
+	subdivisions := make([]map[string]string, len(c.Subdivisions))
+	for n, sub := range c.Subdivisions {
+		m := make(map[string]string)
+		m["name"] = getNameByLang(sub.Names, lang)
+		m["iso"] = sub.IsoCode
+		subdivisions[n] = m
+	}
+	out["subdivisions"] = subdivisions
 
 	out["is_anonymous_proxy"] = c.Traits.IsAnonymousProxy
 	out["is_satellite_provider"] = c.Traits.IsSatelliteProvider
