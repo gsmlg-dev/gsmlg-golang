@@ -18,7 +18,7 @@ func errorHandler(logger *log.Logger) func(interface{}, ...int) {
 			if _, ok := err.(string); ok {
 				logger.Println(err)
 			} else if _, ok := err.(error); ok {
-				logger.Println(err.Error())
+				logger.Println(err)
 			} else {
 				logger.Printf("%s <%v>\n", err, err)
 			}
