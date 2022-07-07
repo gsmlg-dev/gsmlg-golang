@@ -1,0 +1,15 @@
+repositoryUrl: https://github.com/gsmlg-dev/gsmlg-golang.git
+plugins:
+  - '@semantic-release/commit-analyzer'
+  - '@semantic-release/release-notes-generator'
+  - - "@semantic-release/exec"
+    - "prepareCmd" : "echo ${nextRelease.version}"
+      "publishCmd" : "echo pubhlish chat ${nextRelease.version}"
+  - '@semantic-release/github'
+branches:
+  - +([0-9])?(.{+([0-9]),x}).x
+  - main
+  - next
+  - next-major
+  - {name: 'beta', prerelease: true}
+  - {name: 'alpha', prerelease: true}
